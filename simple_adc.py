@@ -8,6 +8,9 @@ import time
 import Adafruit_ADS1x15
 import matplotlib.pyplot as plt
 
+apo=[1,-9.29947181593672,38.9391678696675,-96.6770341442587,157.607191169145,-176.284279849734,137.001526731779,-73.0486978595247,25.5738665509684,-5.30835180952627,0.496083157598912]
+bpo=[1.73601583211395e-13,1.73601583211395e-12,7.81207124451280e-12,2.08321899853675e-11,3.64563324743931e-11,4.37475989692717e-11,3.64563324743931e-11,2.08321899853675e-11,7.81207124451280e-12,1.73601583211395e-12,1.73601583211395e-13]
+
 # Create an ADS1115 ADC (16-bit) instance.
 adc = Adafruit_ADS1x15.ADS1115()
 period = 0.00125
@@ -53,6 +56,13 @@ try:
 		#	time.sleep(period - elapsed_time)
 
 except KeyboardInterrupt:
+	ts=[]
+	#ts.append(times[1]-times[0])
+	for i in range(1,len(times),1):
+		ts.append(times[i]-times[i-1])
+	promedio = sum(ts)/len(ts)
+	print ("el promedio de ts es: " + str(promedio))
+	
 	plt.plot(times,values)
 	plt.show()
 	pass
