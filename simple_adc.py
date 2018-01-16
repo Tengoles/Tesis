@@ -53,6 +53,6 @@ try:
 		#	time.sleep(period - elapsed_time)
 
 except KeyboardInterrupt:
-	plt.plot(values)
+	plt.plot(times,values)
 	plt.show()
 	pass
