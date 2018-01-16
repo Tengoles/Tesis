@@ -13,7 +13,7 @@ bpo=[1.73601583211395e-13,1.73601583211395e-12,7.81207124451280e-12,2.0832189985
 
 # Create an ADS1115 ADC (16-bit) instance.
 adc = Adafruit_ADS1x15.ADS1115()
-period = 0.00125
+period = 0.004
 # Note you can change the I2C address from its default (0x48), and/or the I2C
 # bus by passing in these optional parameters:
 #adc = Adafruit_ADS1x15.ADS1015(address=0x49, busnum=1)
@@ -30,13 +30,14 @@ period = 0.00125
 GAIN = 1
 values = []
 times = [0]
-values.append(adc.read_adc(0, gain=1,data_rate=860))
+sdjhsd=adc._read(0 + 0x04, 1, 860, 0x0000)
+values.append(adc.get_last_result())
 start_time = time.time()
 
 try:
 	while True:
     # Read all the ADC channel values in a list.
-		a0 = adc.read_adc(0, gain=1,data_rate=860)
+		a0 = adc.get_last_result()
     		times.append(time.time() - start_time)
 		values.append(a0)
         	# Read the specified ADC channel using the previously set gain value.
@@ -48,20 +49,19 @@ try:
         	# Each value will be a 12 or 16 bit signed integer value depending on the
         	# ADC (ADS1015 = 12-bit, ADS1115 = 16-bit).
     		# Print the ADC values.
-    		print a0
-    		#elapsed_time = time.time() - start_time
-    		#if elapsed_time >= period:
-		#	pass
-    		#else:
-		#	time.sleep(period - elapsed_time)
+    		#print a0
+    		elapsed_time = time.time() - start_time
+    		if elapsed_time >= period:
+			pass
+    		else:
+			time.sleep(period - elapsed_time)
 
 except KeyboardInterrupt:
 	ts=[]
-	#ts.append(times[1]-times[0])
 	for i in range(1,len(times),1):
 		ts.append(times[i]-times[i-1])
 	promedio = 1/(sum(ts)/len(ts))
-	print ("el promedio de ts es: " + str(promedio))
+	print ("el promedio de fs es: " + str(promedio))
 	
 	plt.plot(times,values)
 	plt.show()
