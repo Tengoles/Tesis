@@ -53,6 +53,13 @@ try:
 		#	time.sleep(period - elapsed_time)
 
 except KeyboardInterrupt:
+	ts=[]
+	#ts.append(times[1]-times[0])
+	for i in range(1,len(times),1):
+		ts.append(times[i]-times[i-1])
+	promedio = sum(ts)/len(ts)
+	print ("el promedio de ts es: " + str(promedio))
+	
 	plt.plot(times,values)
 	plt.show()
 	pass
