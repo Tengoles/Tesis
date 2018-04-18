@@ -21,7 +21,7 @@ adcPO = Tesis.ADS1115(0X49)
 ctrl0 = 5
 GPIO.setmode(GPIO.BCM) # GPIO05 COMO  SALIDA EN HIGH (MULTIPLEXOR)
 GPIO.setup(ctrl0, GPIO.OUT)
-GPIO.output(ctrl0, GPIO.HIGH)
+GPIO.output(ctrl0, GPIO.LOW)
 
 ctrl1 = 6
 GPIO.setmode(GPIO.BCM) # GPIO06 COMO SALIDA EN LOW (MULTIPLEXOR)
@@ -52,7 +52,9 @@ ECG = []
 times = []
 PO = []
 start = time.time()
-tiempo = 10
+tiempo = 15
+foos = GPIO.input(LEAD_OFF_DETECTIONplus)
+ro = GPIO.input(LEAD_OFF_DETECTIONminus)
 
 while time.time() - start < tiempo:
     Tesis.trigger_adcs(adcECG, adcPO) #SE HACE TRIGGER A AMBOS ADCS
@@ -96,8 +98,9 @@ Rtimes, picos = Tesis.RRs(times, fs, yECG)
 maxDerivsTimes, PO_MaxDerivs = Tesis.maxDerivs(times, fs, yPO_opuesta)
 timesValles, valuesValles = Tesis.valles(yPO_opuesta,times,maxDerivsTimes)
 
-for t in timesValles:
-	print t
+#for t in timesValles:
+#	print t
+
 plt.subplot(2, 1, 1)
 plt.plot(times, ECG, 'b-', label='ECG')
 plt.plot(times, yECG, 'g-', linewidth=2, label='ECG filtered data')
@@ -107,7 +110,7 @@ plt.grid()
 plt.legend()
 
 plt.subplot(2, 1, 2)
-plt.plot(maxDerivsTimes, PO_MaxDerivs, 'b-', label='PO')
+#plt.plot(maxDerivsTimes, PO_MaxDerivs, 'b-', label='PO')
 plt.plot(times, yPO_opuesta, 'g-', linewidth=2, label='PO filtered data')
 plt.plot(timesValles, valuesValles, 'ro', linewidth=1, label='valles')
 plt.xlabel('Time [sec]')
