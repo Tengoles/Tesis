@@ -94,7 +94,7 @@ class ADS1115(object):
         config = ADS1x15_CONFIG_OS_SINGLE  # Go out of power-down mode for conversion. config = 1000000000000000
 
        # Specify mux value.
-        config |= (mux & 0x07) << ADS1x15_CONFIG_MUX_OFFSET #mux puede valer 0b100 0b101 para leer las entradas 0 1 4 respectivamente
+        config |= (mux & 0x07) << ADS1x15_CONFIG_MUX_OFFSET #mux puede valer 0b100 0b101 para leer las entradas 0 1 3 respectivamente
         #config = 1100 0000 0000 0000 o 1101 0000 0000 0000 o 1111 0000 0000 0000
 
         #vamos a usar siempre gain 1 (0x0200)
@@ -198,8 +198,8 @@ def read_adcs(adcECG, adcPO):
     return ECGread, POread
 
 def trigger_adcs(adcECG , adcPO):
-    adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
-    adcPO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
+    adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11010011, 0b11100011])
+    adcPO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11100011, 0b11100011])
 
 def RRs(times, fs, ECG, s = 2):
     Rtimes = []
@@ -208,7 +208,7 @@ def RRs(times, fs, ECG, s = 2):
     for i in range(len(ECG)//(s*fs)):  #cada i es el indice de un tramo de s segundos de la data
 		ECGmean = sum(ECG[i*s*fs:(i*s*fs + s*fs)]) / len(ECG[i*s* fs:(i*s*fs + s*fs)])
 		ECGmax = np.amax(ECG[i*s*fs:(i*s*fs + s*fs)])
-		threshold = (ECGmax - ECGmean)*0.5 + ECGmean
+		threshold = (ECGmax - ECGmean)*0.6 + ECGmean
 		for j in range(i*s*fs, i*s*fs + s*fs):
 			if ECG[j] > threshold:
 				if ECG[j + 1] < ECG[j] > ECG[j - 1]:
@@ -247,6 +247,11 @@ def valles(PO,times,maxDerivsTimes):
         for i in range(times.index(maxtime), 1, -1):
             if PO[i-1] > PO[i] < PO[i+1]:
                 timesValles.append(times[i])
-                valuesValles.append(PO[i])
+                #valuesValles.append(PO[i])
                 break
+
+    timesValles = sorted(list(set(timesValles)))
+    for valle in timesValles:
+	valuesValles.append(PO[times.index(valle)])
+
     return timesValles, valuesValles
