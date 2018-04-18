@@ -2,7 +2,6 @@ import Tesis
 import time
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import butter, lfilter, freqz, sosfilt
 from scipy import signal
 
 ADS1x15_POINTER_CONVERSION = 0x00  # = 0
@@ -45,35 +44,34 @@ lowcut = 0.8
 highcut = 35
 
 # Get the filter coefficients so we can check its frequency response.
-sos = butter_bandpass(lowcut,highcut, fs, order)
+sos = Tesis.butter_bandpass(lowcut,highcut, fs, order)
 w, h = signal.sosfreqz(sos,worN=20000)
 plt.subplot(3, 1, 1)
-plt.plot(0.5*fs*w/np.pi, np.abs(h), 'b')
-plt.plot(cutoff, 0.5*np.sqrt(2), 'ko')
-plt.axvline(cutoff, color='k')
+plt.semilogx(0.5*fs*w/np.pi, np.abs(h), 'b')
 plt.xlim(0, 0.5*fs)
 plt.title("Bandpass Filter Frequency Response")
 plt.xlabel('Frequency [Hz]')
 plt.grid()
 
-yECG = Tesis.butter_highpass_filter(ECG, cutoff, fs, order)
-yPO = Tesis.butter_highpass_filter(PO, cutoff, fs, order)
+yECG = Tesis.butter_bandpass_filter(np.asarray(ECG), lowcut, highcut, fs, order)
+yPO = Tesis.butter_bandpass_filter(np.asarray(PO), lowcut, highcut, fs, order)
 
-Rtimes, picos = RRs(times, fs, yECG)
-maxDerivsTimes, PO_MaxDerivs = maxDerivs(times, fs, yPO)
-timesValles, valuesValles = valles(yPO,times,maxDerivsTimes)
+Rtimes, picos = Tesis.RRs(times, fs, yECG)
+maxDerivsTimes, PO_MaxDerivs = Tesis.maxDerivs(times, fs, yPO)
+timesValles, valuesValles = Tesis.valles(yPO,times,maxDerivsTimes)
 
 plt.subplot(3, 1, 2)
-#plt.plot(times, ECG, 'b-', label='ECG')
+plt.plot(times, ECG, 'b-', label='ECG')
 plt.plot(times, yECG, 'g-', linewidth=2, label='ECG filtered data')
-plt.plot(Rtimes, picos,'ro', linewidth=2, label='picos')
+plt.plot(Rtimes, picos,'ro', linewidth=1, label='picos')
 plt.xlabel('Time [sec]')
 plt.grid()
 plt.legend()
 
 plt.subplot(3, 1, 3)
-#plt.plot(times, PO, 'b-', label='PO')
+plt.plot(times, PO, 'b-', label='PO')
 plt.plot(times, yPO, 'g-', linewidth=2, label='PO filtered data')
+plt.plot(timesValles, valuesValles, 'ro', linewidth=1, label='valles')
 plt.xlabel('Time [sec]')
 plt.grid()
 plt.legend()
