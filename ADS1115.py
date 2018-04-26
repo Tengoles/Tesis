@@ -59,7 +59,6 @@ class ADS1115(object):
 		#	pass
 		result = self._device.readList(ADS1x15_POINTER_CONVERSION, 2)
 		return self._conversion_value(result[1], result[0])
-    
     def readECG(self):
 		self._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
 		#time.sleep(1.0/860+0.0001)

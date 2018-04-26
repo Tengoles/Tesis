@@ -14,9 +14,17 @@ def butter_lowpass_filter(data, cutoff, fs, order=5):
     b, a = butter_lowpass(cutoff, fs, order=order)
     y = lfilter(b, a, data)
     return y
-    
 
-    
+def trigger_adcs(adcECG , adcPO):
+	ECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
+	PO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
+	
+def read_adcs(adcECG, adcPO)
+	result = ECG._device.readList(ADS1x15_POINTER_CONVERSION, 2)
+	ECGread = ECG._conversion_value(result[1], result[0])
+	result = PO._device.readList(ADS1x15_POINTER_CONVERSION, 2)
+    POread = PO._conversion_value(result[1], result[0])
+    return ECGread, POread
 
 adcECG = ADS1115.ADS1115()
 adcPO = ADS1115.ADS1115(0X49)
