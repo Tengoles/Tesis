@@ -152,3 +152,49 @@ class ADS1115(object):
         result = self._device.readList(ADS1x15_POINTER_CONVERSION, 2)
         return self._conversion_value(result[1], result[0])
 
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+def butter_highpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+    return b, a
+
+def butter_highpass_filter(data, cutoff, fs, order=5):
+    b, a = butter_highpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    sos = butter(order, [low, high], btype='band', output='sos')
+    #b, a = butter(order, [low, high], btype='band', analog=False)
+    return sos
+
+def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
+    sos = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = sosfilt(sos, data)
+    return y
+
+def read_adcs(adcECG, adcPO):
+    result = adcECG._device.readList(ADS1x15_POINTER_CONVERSION, 2)
+    ECGread = adcECG._conversion_value(result[1], result[0])
+    result = adcPO._device.readList(ADS1x15_POINTER_CONVERSION, 2)
+    POread = adcPO._conversion_value(result[1], result[0])
+    return ECGread, POread
+
+def trigger_adcs(adcECG , adcPO):
+    adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
+    adcPO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])

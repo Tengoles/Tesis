@@ -1,64 +1,15 @@
-import ADS1115
+import Tesis
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import butter, lfilter, freqz, sosfilt
 from scipy import signal
 
-ADS1x15_POINTER_CONVERSION     = 0x00 # = 0
-ADS1x15_POINTER_CONFIG         = 0x01 # = 1
+ADS1x15_POINTER_CONVERSION = 0x00  # = 0
+ADS1x15_POINTER_CONFIG = 0x01  # = 1
 
-def butter_lowpass(cutoff, fs, order=5):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
-    return b, a
-
-def butter_lowpass_filter(data, cutoff, fs, order=5):
-    b, a = butter_lowpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
-
-def butter_highpass(cutoff, fs, order=5):
-    nyq = 0.5 * fs
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='high', analog=False)
-    return b, a
-
-def butter_highpass_filter(data, cutoff, fs, order=5):
-    b, a = butter_highpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
-
-def butter_bandpass(lowcut, highcut, fs, order=5):
-    nyq = 0.5 * fs
-    low = lowcut / nyq
-    high = highcut / nyq
-    sos = butter(order, [low, high], btype='band', output='sos')
-    #b, a = butter(order, [low, high], btype='band', analog=False)
-    return sos
-
-
-def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
-    sos = butter_bandpass(lowcut, highcut, fs, order=order)
-    y = sosfilt(sos, data)
-    return y
-
-def read_adcs(adcECG, adcPO):
-    result = adcECG._device.readList(ADS1x15_POINTER_CONVERSION, 2)
-    ECGread = adcECG._conversion_value(result[1], result[0])
-    result = adcPO._device.readList(ADS1x15_POINTER_CONVERSION, 2)
-    POread = adcPO._conversion_value(result[1], result[0])
-    return ECGread, POread
-
-def trigger_adcs(adcECG , adcPO):
-    adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
-    adcPO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
-
-
-
-adcECG = ADS1115.ADS1115()
-adcPO = ADS1115.ADS1115(0X49)
+adcECG = Tesis.ADS1115()
+adcPO = Tesis.ADS1115(0X49)
 #adc._device es un objeto de la clase Device del modulo I2C.py
 	
 	#adc._device._address es la direccion del i2c en la que esta el adc
@@ -67,35 +18,21 @@ adcPO = ADS1115.ADS1115(0X49)
 	#adc._device._bus = Adafruit_PureIO.smbus.SMBus(busnum) es un objeto
 	#que tiene los metodos para leer y escribir por i2c
 
-
-
 ECG = []
 times = []
 PO = []
-start  = time.time()
+start = time.time()
 
 while time.time() - start < 5:
-	trigger_adcs(adcECG , adcPO)
-	times.append(time.time() - start)
-	valueECG, valuePO = read_adcs(adcECG, adcPO)
-	ECG.append(valueECG)
-	PO.append(valuePO)
-	
-ECGmean = 0
-POmean = 0
-j = 0
-for i in range(len(ECG)):
-	ECGmean = ECG[i] + ECGmean
-	POmean = PO[i] + POmean
-	if j == 3200:
-		ECGmean = ECGmean/j
-		POmean = POmean/j
-		for l in range(j):
-			ECG[
+    Tesis.trigger_adcs(adcECG, adcPO)
+    times.append(time.time() - start)
+    valueECG, valuePO = Tesis.read_adcs(adcECG, adcPO)
+    ECG.append(valueECG)
+    PO.append(valuePO)
 
 ts = []
 for i in range(1,len(times),1):
-	ts.append(times[i]-times[i-1])
+    ts.append(times[i]-times[i-1])
 
 ts = sum(ts)/len(ts)
 fs = 1/ts
@@ -105,13 +42,12 @@ print "fs = " + str(fs)
 # Filter requirements.
 order = 10
 cutoff = 10  # desired cutoff frequency of the filter, Hz
-lowcut = 1
+lowcut = 0.8
 highcut = 35
 
 # Get the filter coefficients so we can check its frequency response.
 #b, a = butter_lowpass(cutoff, fs, order)
-#sos = butter_bandpass(lowcut,highcut, fs, 40)
-b, a = butter_highpass(cutoff, fs, order)
+sos = butter_bandpass(lowcut,highcut, fs, 10)
 
 # Plot the frequency response.
 w, h = freqz(b, a, worN=8000)
@@ -128,8 +64,8 @@ plt.grid()
 # Filter the data, and plot both the original and filtered signals.
 #yECG = butter_lowpass_filter(ECG, cutoff, fs, order)
 #yPO = butter_lowpass_filter(PO, cutoff, fs, order)
-yECG = butter_highpass_filter(ECG, cutoff, fs, order)
-yPO = butter_highpass_filter(PO, cutoff, fs, order)
+yECG = Tesis.butter_highpass_filter(ECG, cutoff, fs, order)
+yPO = Tesis.butter_highpass_filter(PO, cutoff, fs, order)
 #yECG = butter_bandpass_filter(ECG, 0.5, 40, fs, order)
 #yPO = butter_bandpass_filter(PO, 0.5, 40, fs, order)
 

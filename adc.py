@@ -1,4 +1,4 @@
-import ADS1115
+import Tesis
 import time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,8 +26,8 @@ def read_adcs(adcECG, adcPO)
     POread = PO._conversion_value(result[1], result[0])
     return ECGread, POread
 
-adcECG = ADS1115.ADS1115()
-adcPO = ADS1115.ADS1115(0X49)
+adcECG = Tesis.ADS1115()
+adcPO = Tesis.ADS1115(0X49)
 #adc._device es un objeto de la clase Device del modulo I2C.py
 	
 	#adc._device._address es la direccion del i2c en la que esta el adc
