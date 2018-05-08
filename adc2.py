@@ -117,4 +117,4 @@ plt.show()
 
 datos = open('/home/pi/Tesis/datos_enzo.txt', 'w')
 for i in range(len(yPO)):
-	datos.write(str(times[i]) + "\t" + str(yECG[i]) + "\t" + str(yPO[i]) + "\n")
+	datos.write(str(times[i]) + "," + str(yECG[i]) + "," + str(yPO[i]) + ",")
