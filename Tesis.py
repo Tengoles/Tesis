@@ -1,5 +1,5 @@
 import time
-
+from scipy import signal
 
 # Register and other configuration values:
 ADS1x15_DEFAULT_ADDRESS        = 0x48 # = 1001000
@@ -156,36 +156,35 @@ class ADS1115(object):
 def butter_lowpass(cutoff, fs, order=5):
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
     return b, a
 
 def butter_lowpass_filter(data, cutoff, fs, order=5):
     b, a = butter_lowpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
+    y = signal.lfilter(b, a, data)
     return y
 
 def butter_highpass(cutoff, fs, order=5):
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='high', analog=False)
+    b, a = signal.butter(order, normal_cutoff, btype='high', analog=False)
     return b, a
 
 def butter_highpass_filter(data, cutoff, fs, order=5):
     b, a = butter_highpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
+    y = signal.lfilter(b, a, data)
     return y
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    sos = butter(order, [low, high], btype='band', output='sos')
-    #b, a = butter(order, [low, high], btype='band', analog=False)
+    sos = signal.butter(order, [low, high], btype='band', output='sos')
     return sos
 
 def butter_bandpass_filter(data, lowcut, highcut, fs, order=5):
     sos = butter_bandpass(lowcut, highcut, fs, order=order)
-    y = sosfilt(sos, data)
+    y = signal.sosfiltfilt(sos, data)
     return y
 
 def read_adcs(adcECG, adcPO):
@@ -198,3 +197,41 @@ def read_adcs(adcECG, adcPO):
 def trigger_adcs(adcECG , adcPO):
     adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
     adcPO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11000011, 0b11100011])
+
+def RRs(times, fs, ECG, s = 2):
+    Rtimes = []
+    picos = []
+    fs = int(fs)
+    for i in range(len(ECG)//(s*fs)):  #cada i es el indice de un tramo de s segundos de la data
+        ECGmean = sum(ECG[i*s*fs:(i*s*fs + s*fs)]) / len(ECG[i*s* fs:(i*s*fs + s*fs)])
+        ECGmax = np.amax(ECG[i*s*fs:(i*s*fs + s*fs)])
+        threshold = (ECGmax - ECGmean)*0.5 + ECGmean
+        for j in range(i*s*fs, i*s*fs + s*fs):
+            if ECG[j] > threshold:
+                if ECG[j + 1] < ECG[j] > ECG[j - 1]:
+                    Rtimes.append(times[j])
+                    picos.append(ECG[j])
+    return Rtimes, picos
+
+def maxDerivs(times, fs, PO, s = 2):
+    derivadas = []
+    fs = int(fs)
+    for i in range(1 , len(PO), 1):
+        derivadas.append((PO[i] - PO[i-1])/(times[i] - times[i-1]))
+
+    maxDerivsTimes, DerivValues = RRs(times, fs, derivadas, s)
+    PO_MaxDerivs = []
+    for time in maxDerivsTimes:
+        PO_MaxDerivs.append(PO[times.index(time)])
+    return maxDerivsTimes, PO_MaxDerivs
+
+def valles(PO,times,maxDerivsTimes):
+    timesValles = []
+    valuesValles = []
+    for maxtime in maxDerivsTimes:
+        for i in range(times.index(maxtime), 1, -1):
+            if PO[i-1] > PO[i] < PO[i+1]:
+                timesValles.append(times[i])
+                valuesValles.append(PO[i])
+                break
+    return timesValles, valuesValles
