@@ -92,11 +92,11 @@ w, h = signal.sosfreqz(sos,worN=20000)
 
 yECG = Tesis.butter_bandpass_filter(np.asarray(ECG), lowcut, highcut, fs, order)
 yPO = Tesis.butter_bandpass_filter(np.asarray(PO), lowcut, highcut, fs, order)
-yPO_opuesta = yPO*-1
+#yPO_opuesta = yPO*-1
 
 Rtimes, picos = Tesis.RRs(times, fs, yECG)
-maxDerivsTimes, PO_MaxDerivs = Tesis.maxDerivs(times, fs, yPO_opuesta)
-timesValles, valuesValles = Tesis.valles(yPO_opuesta,times,maxDerivsTimes)
+maxDerivsTimes, PO_MaxDerivs = Tesis.maxDerivs(times, fs, yPO)
+timesValles, valuesValles = Tesis.valles(yPO,times,maxDerivsTimes)
 
 #for t in timesValles:
 #	print t
@@ -111,7 +111,8 @@ plt.legend()
 
 plt.subplot(2, 1, 2)
 #plt.plot(maxDerivsTimes, PO_MaxDerivs, 'b-', label='PO')
-plt.plot(times, yPO_opuesta, 'g-', linewidth=2, label='PO filtered data')
+plt.plot(times, PO, 'b-', label='PO')
+plt.plot(times, yPO, 'g-', linewidth=2, label='PO filtered data')
 plt.plot(timesValles, valuesValles, 'ro', linewidth=1, label='valles')
 plt.xlabel('Time [sec]')
 plt.grid()

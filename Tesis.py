@@ -198,7 +198,7 @@ def read_adcs(adcECG, adcPO):
     return ECGread, POread
 
 def trigger_adcs(adcECG , adcPO):
-    adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11110011, 0b11100011])
+    adcECG._device.writeList(ADS1x15_POINTER_CONFIG, [0b11100011, 0b11100011])
     adcPO._device.writeList(ADS1x15_POINTER_CONFIG, [0b11110011, 0b11100011])
 
 def RRs(times, fs, ECG, s = 2):
